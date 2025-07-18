@@ -1,1 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport de Présence via API</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Your existing CSS for table and badges can go here */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; color: #333; }
+        .header h1 { margin: 0; font-size: 2.5em; color: #667eea; }
+        .header p { margin: 10px 0; color: #666; }
+        .dataTables_wrapper { margin-top: 20px; }
+        .action-entrée { color: #28a745; font-weight: bold; }
+        .action-sortie { color: #dc3545; font-weight: bold; }
+        .table-responsive { overflow-x: auto; }
+        #presenceTable { width: 100% !important; }
+        .dataTables_filter input, .dataTables_length select { border-radius: 6px; border: 1px solid #ddd; padding: 8px 12px; }
+        .no-data { text-align: center; padding: 50px; color: #666; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .badge.entree { background-color: #d4edda; color: #155724; }
+        .badge.sortie { background-color: #f8d7da; color: #721c24; }
+        .loading-message { text-align: center; padding: 50px; font-size: 1.2em; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-clock"></i> Rapport de Présence (via API)</h1>
+            <p id="generated-date">Chargement des données...</p>
+        </div>
 
+        <div id="table-container">
+            <div class="loading-message">
+                <i class="fas fa-spinner fa-spin"></i> Chargement des données...
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script>
+        // REMPLACEZ CETTE URL PAR L'URL DE DÉPLOIEMENT DE VOTRE SCRIPT APPS AVEC ?page=api_presence
+        const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbxf4NyYIry7H9N_iyT8kVaPBhOhgUdPEU9Wvfh6QGYQYDIRCl1sfcfSuUDuYvPLKdSpMg/exec'; 
+
+        $(document).ready(function() {
+            fetch(APPS_SCRIPT_API_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur réseau ou réponse non OK: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    $('#generated-date').text('Données mises à jour le ' + new Date().toLocaleDateString('fr-FR', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    }) + ' à ' + new Date().toLocaleTimeString('fr-FR'));
+
+                    if (data.length === 0) {
+                        $('#table-container').html('<div class="no-data"><i class="fas fa-exclamation-triangle"></i><h3>Aucune donnée disponible</h3><p>Vérifiez que les fichiers contiennent des données valides.</p></div>');
+                        return;
+                    }
+
+                    let tableHtml = `
+                        <div class="table-responsive">
+                            <table id="presenceTable" class="display" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Heure</th>
+                                        <th>Action</th>
+                                        <th>Nom Complet</th>
+                                        <th>ID Employé</th>
+                                        <th>Pointeuse</th>
+                                        <th>Adresse</th>
+                                        <th>IP</th>
+                                        <th>ID Clock</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                    data.forEach(record => {
+                        tableHtml += `
+                            <tr>
+                                <td>${record.date_formatted}</td>
+                                <td>${record.heure_formatted}</td>
+                                <td><span class="badge ${record.action.toLowerCase()}">${record.action}</span></td>
+                                <td>${record.nom_complet}</td>
+                                <td>${record.id}</td>
+                                <td>${record.clock_name}</td>
+                                <td>${record.address}</td>
+                                <td>${record.ip}</td>
+                                <td>${record.id_clock}</td>
+                            </tr>`;
+                    });
+
+                    tableHtml += `
+                                </tbody>
+                            </table>
+                        </div>`;
+
+                    $('#table-container').html(tableHtml);
+
+                    $('#presenceTable').DataTable({
+                        pageLength: 25,
+                        order: [[0, 'desc'], [1, 'desc']],
+                        language: {
+                            url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/French.json'
+                        },
+                        columnDefs: [
+                            {
+                                targets: [2],
+                                render: function(data, type, row) {
+                                    if (type === 'display') {
+                                        const action = data.includes('Entrée') ? 'Entrée' : 'Sortie';
+                                        const icon = action === 'Entrée' ? 'fa-sign-in-alt' : 'fa-sign-out-alt';
+                                        return '<i class="fas ' + icon + '"></i> ' + data;
+                                    }
+                                    return data;
+                                }
+                            }
+                        ],
+                        responsive: true,
+                        dom: 'Bfrtip',
+                        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tous"]],
+                        search: {
+                            smart: true
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des données:', error);
+                    $('#table-container').html('<div class="no-data"><i class="fas fa-times-circle" style="color: #d32f2f;"></i><h3>Erreur de chargement</h3><p>Impossible de charger les données. Vérifiez la console pour plus de détails.</p></div>');
+                });
+        });
+    </script>
+</body>
+</html>
