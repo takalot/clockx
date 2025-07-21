@@ -3,79 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application de Présence (Takalot)</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <title>Liste des Pointeuses Externe - Takalot</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%); /* Fond plus doux */
+            min-height: 100vh;
             color: #333;
         }
         .container {
-            max-width: 800px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-width: 1000px;
             margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        h1 {
-            color: #0056b3;
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
         }
-        pre {
-            background-color: #eee;
+        .header h1 {
+            margin: 0;
+            font-size: 2.8em;
+            color: #00796b; /* Couleur plus douce */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        .header h1 i {
+            font-size: 1.2em;
+        }
+        .header p {
+            margin: 10px 0;
+            color: #666;
+            font-size: 0.95em;
+        }
+        .loader, .error-message, .no-data {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #555;
+            background-color: #fdfefe;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .loader i {
+            font-size: 2em;
+            color: #00796b;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: #d32f2f;
+        }
+        .dataTables_wrapper {
+            margin-top: 20px;
             padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
+            background-color: #f9f9f9;
+            border-radius: 10px;
         }
-        .error {
-            color: red;
-            font-weight: bold;
+        #clockTable {
+            width: 100% !important;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        #clockTable thead th {
+            background-color: #00796b; /* Couleur pour l'en-tête du tableau */
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid #004d40;
+        }
+        #clockTable tbody td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+        }
+        #clockTable tbody tr:nth-child(even) {
+            background-color: #f6f6f6;
+        }
+        #clockTable tbody tr:hover {
+            background-color: #eef;
+        }
+        .dataTables_filter input, .dataTables_length select {
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            margin: 5px;
+        }
+        .dataTables_length select {
+            padding: 5px 10px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .header h1 {
+                font-size: 2em;
+                flex-direction: column;
+                gap: 5px;
+            }
+            #clockTable thead th, #clockTable tbody td {
+                padding: 8px 10px;
+                font-size: 0.9em;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Données de Présence</h1>
-        <p>Récupération des données depuis Google Apps Script...</p>
-        <div id="data-display">
-            Chargement en cours...
+        <div class="header">
+            <h1><i class="fas fa-microchip"></i> Liste des Pointeuses Externe <span style="color: #00796b;">Takalot</span></h1>
+            <p id="last-updated">Dernière mise à jour : Chargement...</p>
         </div>
-        <p class="error" id="error-message"></p>
+
+        <div id="loading-spinner" class="loader">
+            <i class="fas fa-spinner"></i>
+            <p>Chargement des données...</p>
+        </div>
+
+        <div id="data-container">
+            </div>
+
+        <div id="error-display" class="error-message" style="display: none;">
+            </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script>
-        // C'est ici que vous définissez l'URL de votre Google Apps Script.
-        // Remplacez cette URL par CELLE DE VOTRE DÉPLOIEMENT APPS SCRIPT.
-        // Assurez-vous que le paramètre '?page=api_presence' est bien inclus.
-        const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbzWSiE2OpwWXHAtCB0k6auXB19mRYX2WTRkY5Gf9ooXySG8GmzlRry-8na_b4KYJIuK4w/exec?page=api_presence';
+        // REMPLACEZ CETTE URL PAR L'URL DE VOTRE DÉPLOIEMENT APPS SCRIPT
+        // Assurez-vous que l'action 'getJsonData' est bien gérée par votre doGet()
+        const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbzWSiE2OpwWXHAtCB0k6auXB19mRYX2WTRkY5Gf9ooXySG8GmzlRry-8na_b4KYJIuK4w/exec?action=getJsonData';
 
         $(document).ready(function() {
-            fetchData(); // Appelle la fonction de récupération des données au chargement de la page
+            fetchAndDisplayClockData();
         });
 
-        async function fetchData() {
+        async function fetchAndDisplayClockData() {
+            $('#loading-spinner').show(); // Afficher le spinner de chargement
+            $('#data-container').empty(); // Vider l'ancien contenu
+            $('#error-display').hide().text(''); // Cacher et vider les messages d'erreur
+
             try {
                 const response = await fetch(APPS_SCRIPT_API_URL);
 
                 if (!response.ok) {
-                    // Si la réponse n'est pas OK (par exemple, 404, 500), jetez une erreur
-                    const errorText = await response.text(); // Tente de lire le texte de l'erreur
-                    throw new Error(`Erreur réseau ou du serveur: ${response.status} ${response.statusText}. Détails: ${errorText.substring(0, 200)}...`);
+                    const errorText = await response.text();
+                    throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}. Détails: ${errorText.substring(0, 200)}...`);
                 }
 
-                const data = await response.json(); // Tente de parser la réponse JSON
+                const allData = await response.json(); // Récupère toutes les données fusionnées
 
-                // Affichez les données dans l'élément #data-display
-                $('#data-display').html('<pre>' + JSON.stringify(data, null, 2) + '</pre>');
-                $('#error-message').text(''); // Efface les messages d'erreur précédents
+                // Extraire les données uniques des pointeuses
+                const uniqueClocks = {};
+                allData.forEach(record => {
+                    if (record.id_clock && !uniqueClocks[record.id_clock]) {
+                        uniqueClocks[record.id_clock] = {
+                            id_clock: record.id_clock,
+                            clock_name: record.clock_name,
+                            address: record.address,
+                            ip: record.ip
+                        };
+                    }
+                });
+                const clockData = Object.values(uniqueClocks); // Convertir l'objet en tableau
+
+                if (clockData && clockData.length > 0) {
+                    generateClockTable(clockData);
+                    $('#last-updated').text('Dernière mise à jour : ' + new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' à ' + new Date().toLocaleTimeString('fr-FR'));
+                } else {
+                    $('#data-container').html('<div class="no-data"><i class="fas fa-info-circle"></i><h3>Aucune pointeuse disponible</h3><p>Vérifiez les fichiers sources ou réessayez plus tard.</p></div>');
+                }
 
             } catch (error) {
                 console.error('Erreur lors de la récupération des données:', error);
-                $('#data-display').html('<p class="error">Impossible de charger les données.</p>');
-                $('#error-message').text('Erreur lors de la récupération des données: ' + error.message);
+                $('#error-display').text('Erreur lors du chargement des données: ' + error.message).show();
+                $('#data-container').empty(); // S'assurer que le conteneur de données est vide
+            } finally {
+                $('#loading-spinner').hide(); // Toujours cacher le spinner à la fin
             }
+        }
+
+        function generateClockTable(data) {
+            let tableHtml = `
+                <div class="table-responsive">
+                    <table id="clockTable" class="display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Nom Pointeuse</th>
+                                <th>ID Pointeuse</th>
+                                <th>Adresse</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+            `;
+            $('#data-container').html(tableHtml);
+
+            // Mapper les données pour DataTables
+            const tableData = data.map(record => [
+                record.clock_name,
+                record.id_clock,
+                record.address,
+                record.ip
+            ]);
+
+            $('#clockTable').DataTable({
+                data: tableData,
+                pageLength: 10,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/French.json'
+                },
+                responsive: true,
+                dom: 'Bfrtip',
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Tous"]],
+                search: {
+                    smart: true
+                }
+            });
         }
     </script>
 </body>
