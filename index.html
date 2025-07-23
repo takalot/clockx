@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapport de Présence</title>
-    <a href="https://takalot.github.io/clockx/17.html">List de clock</a>
+    <title>Rapport de Présence Takalot - Externe</title>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -12,7 +11,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #e0f2f7 0%, #c8e6c9 100%); /* Fond plus doux */
+            background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%); /* Fond plus doux */
             min-height: 100vh;
             color: #333;
         }
@@ -34,7 +33,7 @@
         .header h1 {
             margin: 0;
             font-size: 2.8em;
-            color: #2e7d32; /* Vert plus doux */
+            color: #00796b; /* Couleur plus douce */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -60,7 +59,7 @@
         }
         .loader i {
             font-size: 2em;
-            color: #2e7d32;
+            color: #00796b;
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
@@ -76,17 +75,25 @@
             background-color: #f9f9f9;
             border-radius: 10px;
         }
+        .action-entrée, .action-sortie {
+            font-weight: bold;
+        }
+        .action-entrée { color: #28a745; }
+        .action-sortie { color: #dc3545; }
+        .table-responsive {
+            overflow-x: auto;
+        }
         #presenceTable {
             width: 100% !important;
             margin-top: 20px;
             border-collapse: collapse;
         }
         #presenceTable thead th {
-            background-color: #2e7d32; /* Vert pour l'en-tête du tableau */
+            background-color: #00796b; /* Couleur pour l'en-tête du tableau */
             color: white;
             padding: 12px 15px;
             text-align: left;
-            border-bottom: 2px solid #1b5e20;
+            border-bottom: 2px solid #004d40;
         }
         #presenceTable tbody td {
             padding: 10px 15px;
@@ -133,6 +140,87 @@
             font-size: 0.9em;
         }
 
+        /* Styles pour le filtre de date */
+        .date-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f0f4f8; /* Un fond plus clair pour le conteneur */
+            border-radius: 10px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .date-filter-container label {
+            font-weight: bold;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .date-filter-container input[type="date"] {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            width: 150px; /* Largeur fixe pour les inputs date */
+        }
+        .date-filter-container input[type="date"]:focus {
+            border-color: #00796b;
+            box-shadow: 0 0 0 3px rgba(0, 121, 107, 0.2);
+        }
+        .date-filter-container button {
+            padding: 10px 20px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .date-filter-container button:hover {
+            background-color: #004d40;
+            transform: translateY(-2px);
+        }
+        .date-filter-container button:active {
+            transform: translateY(0);
+        }
+        /* Styles pour les éléments cliquables */
+        .clickable-filter {
+            cursor: pointer;
+            color: #00796b; /* Couleur cliquable */
+            text-decoration: underline;
+            transition: color 0.2s ease;
+        }
+        .clickable-filter:hover {
+            color: #004d40;
+        }
+        .filter-status {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: #333;
+            font-weight: bold;
+        }
+        .filter-status button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s ease;
+        }
+        .filter-status button:hover {
+            background-color: #c82333;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .container {
@@ -147,20 +235,40 @@
                 padding: 8px 10px;
                 font-size: 0.9em;
             }
+            .date-filter-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .date-filter-container input[type="date"] {
+                width: 80%; /* Plus large sur mobile */
+                max-width: 250px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-chart-bar"></i> Rapport de Présence Externe <span style="color: #2e7d32;">Takalot</span></h1>
+            <h1><i class="fas fa-fingerprint"></i> Rapport de Présence <span style="color: #00796b;">Takalot</span></h1>
             <p id="last-updated">Dernière mise à jour : Chargement...</p>
+        </div>
+
+        <div class="date-filter-container">
+            <label for="startDate"><i class="fas fa-calendar-alt"></i> Date de début :</label>
+            <input type="date" id="startDate">
+            <label for="endDate"><i class="fas fa-calendar-alt"></i> Date de fin :</label>
+            <input type="date" id="endDate">
+            <button id="filterButton"><i class="fas fa-filter"></i> Filtrer</button>
+            <button id="resetButton"><i class="fas fa-undo"></i> Réinitialiser</button>
         </div>
 
         <div id="loading-spinner" class="loader">
             <i class="fas fa-spinner"></i>
             <p>Chargement des données...</p>
         </div>
+
+        <div id="filter-status-display" class="filter-status" style="display: none;">
+            </div>
 
         <div id="data-container">
             </div>
@@ -176,17 +284,96 @@
         // Assurez-vous que l'action 'getJsonData' est bien gérée par votre doGet()
         const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbzWSiE2OpwWXHAtCB0k6auXB19mRYX2WTRkY5Gf9ooXySG8GmzlRry-8na_b4KYJIuK4w/exec?action=getJsonData';
 
+        let dataTableInitialized = false; // Suivi de l'initialisation de DataTables
+        let presenceTable; // Variable pour stocker l'instance de DataTables
+
         $(document).ready(function() {
+            // Définir les dates par défaut (par exemple, les 30 derniers jours)
+            const today = new Date();
+            const last30Days = new Date();
+            last30Days.setDate(today.getDate() - 30); // 30 jours avant
+
+            // Fonction pour obtenir la date au format YYYY-MM-DD
+            function getFormattedDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // Pré-remplir les champs de date avec les valeurs des paramètres d'URL ou les valeurs par défaut
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialStartDate = urlParams.get('startDate');
+            const initialEndDate = urlParams.get('endDate');
+
+            $('#startDate').val(initialStartDate || getFormattedDate(last30Days));
+            $('#endDate').val(initialEndDate || getFormattedDate(today));
+
+            // Lancer la récupération des données au chargement de la page
             fetchAndDisplayData();
+
+            // Gérer le clic sur le bouton "Filtrer"
+            $('#filterButton').on('click', function() {
+                fetchAndDisplayData();
+            });
+
+            // Gérer le clic sur le bouton "Réinitialiser"
+            $('#resetButton').on('click', function() {
+                // Réinitialiser les dates aux 30 derniers jours et recharger
+                $('#startDate').val(getFormattedDate(last30Days));
+                $('#endDate').val(getFormattedDate(today));
+                fetchAndDisplayData();
+            });
+
+            // Gérer les clics sur les cellules du tableau pour filtrer
+            $(document).on('click', '.clickable-filter[data-filter-type="employee"]', function() {
+                const employeeName = $(this).data('filter-value');
+                applyColumnFilter(3, employeeName, 'Employé'); // Colonne 3 pour Employé
+            });
+
+            $(document).on('click', '.clickable-filter[data-filter-type="clock"]', function() {
+                const clockName = $(this).data('filter-value');
+                applyColumnFilter(5, clockName, 'Pointeuse'); // Colonne 5 pour Pointeuse
+            });
+
+            // Gérer le clic sur le bouton de réinitialisation de filtre spécifique
+            $(document).on('click', '#resetColumnFilterButton', function() {
+                clearColumnFilter();
+            });
         });
 
         async function fetchAndDisplayData() {
             $('#loading-spinner').show(); // Afficher le spinner de chargement
-            $('#data-container').empty(); // Vider l'ancien contenu
+            $('#data-container').empty(); // Vider l'ancien contenu du tableau
             $('#error-display').hide().text(''); // Cacher et vider les messages d'erreur
+            $('#filter-status-display').hide().empty(); // Cacher et vider le statut du filtre
+
+            if (dataTableInitialized) {
+                presenceTable.destroy(); // Détruire l'instance DataTables existante
+                dataTableInitialized = false;
+            }
 
             try {
-                const response = await fetch(APPS_SCRIPT_API_URL);
+                const startDate = $('#startDate').val();
+                const endDate = $('#endDate').val();
+
+                let apiUrl = APPS_SCRIPT_API_URL;
+                const params = new URLSearchParams();
+
+                // Ajouter les paramètres de date si elles sont renseignées
+                if (startDate) {
+                    params.append('startDate', startDate);
+                }
+                if (endDate) {
+                    params.append('endDate', endDate);
+                }
+
+                // Construire l'URL complète avec les paramètres
+                if (params.toString()) {
+                    apiUrl += '&' + params.toString(); // Utiliser '&' car 'action=getJsonData' a déjà utilisé '?'
+                }
+                
+                const response = await fetch(apiUrl);
 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -199,13 +386,12 @@
                     generateDataTable(data);
                     $('#last-updated').text('Dernière mise à jour : ' + new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' à ' + new Date().toLocaleTimeString('fr-FR'));
                 } else {
-                    $('#data-container').html('<div class="no-data"><i class="fas fa-info-circle"></i><h3>Aucune donnée disponible</h3><p>Vérifiez les fichiers sources ou réessayez plus tard.</p></div>');
+                    $('#data-container').html('<div class="no-data"><i class="fas fa-info-circle"></i><h3>Aucune donnée de présence disponible pour cette période</h3><p>Vérifiez les dates sélectionnées ou les fichiers source.</p></div>');
                 }
 
             } catch (error) {
                 console.error('Erreur lors de la récupération des données:', error);
-                $('#error-display').text('Erreur lors du chargement des données: ' + error.message).show();
-                $('#data-container').empty(); // S'assurer que le conteneur de données est vide
+                $('#error-display').text('Erreur lors du chargement des données: ' + error.message + '. Veuillez vérifier l\'URL de votre Apps Script et les permissions CORS.').show();
             } finally {
                 $('#loading-spinner').hide(); // Toujours cacher le spinner à la fin
             }
@@ -229,26 +415,28 @@
                             </tr>
                         </thead>
                         <tbody>
-                            </tbody>
+                            
+                        </tbody>
                     </table>
                 </div>
             `;
             $('#data-container').html(tableHtml);
 
-            // Mapper les données pour DataTables
             const tableData = data.map(record => [
                 record.date_formatted,
                 record.heure_formatted,
                 `<span class="badge ${record.action.toLowerCase()}">${record.action} <i class="fas fa-${record.action === 'Entrée' ? 'sign-in-alt' : 'sign-out-alt'}"></i></span>`,
-                record.nom_complet,
+                // Rendre l'employé cliquable
+                `<span class="clickable-filter" data-filter-type="employee" data-filter-value="${record.nom_complet}">${record.nom_complet}</span>`,
                 record.id,
-                record.clock_name,
+                // Rendre la pointeuse cliquable
+                `<span class="clickable-filter" data-filter-type="clock" data-filter-value="${record.clock_name}">${record.clock_name}</span>`,
                 record.address,
                 record.ip,
                 record.id_clock
             ]);
 
-            $('#presenceTable').DataTable({
+            presenceTable = $('#presenceTable').DataTable({
                 data: tableData,
                 pageLength: 25,
                 order: [[0, 'desc'], [1, 'desc']], // Tri par date puis heure (plus récent en premier)
@@ -262,6 +450,31 @@
                     smart: true
                 }
             });
+            dataTableInitialized = true;
+        }
+
+        // Fonction pour appliquer un filtre sur une colonne spécifique
+        function applyColumnFilter(columnIndex, value, filterName) {
+            if (presenceTable) {
+                // Effacer tous les filtres de colonne existants
+                presenceTable.columns().search('').draw();
+                // Appliquer le nouveau filtre
+                presenceTable.column(columnIndex).search(value).draw();
+                
+                // Afficher le statut du filtre
+                $('#filter-status-display').html(`
+                    Filtré par ${filterName}: <strong>${value}</strong>
+                    <button id="resetColumnFilterButton"><i class="fas fa-times-circle"></i> Effacer le filtre</button>
+                `).show();
+            }
+        }
+
+        // Fonction pour effacer tous les filtres de colonne
+        function clearColumnFilter() {
+            if (presenceTable) {
+                presenceTable.columns().search('').draw(); // Efface tous les filtres de colonne
+                $('#filter-status-display').hide().empty(); // Cache le statut du filtre
+            }
         }
     </script>
 </body>
